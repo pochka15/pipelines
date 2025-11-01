@@ -24,3 +24,6 @@ fix-formatting:
 
 fix-lint:
 	npm run lint --fix
+
+create-patch:
+	git format-patch -1 --stdout $(HASH) | pbcopy
