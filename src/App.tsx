@@ -4,8 +4,9 @@ import { Button } from "./components/ui/button";
 function App() {
   return (
     <div>
-      Hello World
+      <p>Hello World</p>
       <Button>Click me</Button>
+      <p>How are you doing?</p>
     </div>
   );
 }
