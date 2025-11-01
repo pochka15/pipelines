@@ -6,10 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "eslint",
+    "lint:nofix": "next lint --quiet",
+    "format:nofix": "prettier . --check --cache",
+    "format": "prettier . --write --cache",
+    "tsc:noEmit": "tsc --noEmit",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/vite": "^4.1.16",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
