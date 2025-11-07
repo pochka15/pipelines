@@ -9,11 +9,14 @@ import { Plus } from "lucide-react";
 import type { FC } from "react";
 import { useState } from "react";
 import { CommandItem, type CommandItemData } from "./command-item";
+import { useShortcuts } from "@/lib/hooks/use-shortcuts";
+import { isNil } from "lodash";
 
 export const PipelineForm: FC<{
   onSubmit: (pipeline: NewPipeline) => void;
+  onClose: () => void;
   initialPipeline?: Pipeline;
-}> = ({ onSubmit, initialPipeline }) => {
+}> = ({ onSubmit, onClose, initialPipeline }) => {
   const [title, setTitle] = useState(initialPipeline?.title || "");
   const [commands, setCommands] = useState<CommandItemData[]>(
     initialPipeline?.commands.map((cmd, i) => ({
@@ -22,6 +25,9 @@ export const PipelineForm: FC<{
       value: cmd.value,
     })) || [{ id: "cmd-0", value: "" }]
   );
+
+  const isEditing = !isNil(initialPipeline);
+  const canSubmit = !title.trim() || commands.every((cmd) => !cmd.value.trim());
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -85,6 +91,11 @@ export const PipelineForm: FC<{
     });
   };
 
+  useShortcuts({
+    escape: isEditing ? submit : onClose,
+    "cmd+j": isEditing ? submit : onClose,
+  });
+
   return (
     <div className="space-y-4 max-w-2xl">
       <Input
@@ -129,10 +140,7 @@ export const PipelineForm: FC<{
           Add Command
         </Button>
 
-        <Button
-          onClick={submit}
-          disabled={!title.trim() || commands.every((cmd) => !cmd.value.trim())}
-        >
+        <Button onClick={submit} disabled={!canSubmit}>
           Save Pipeline
         </Button>
       </div>

@@ -1,17 +1,16 @@
-import { Button } from "@/components/ui/button";
-import { usePipelinesStore } from "@/domain/stores/pipelines-store";
+import {
+  usePipelinesStore,
+  type NewPipeline,
+} from "@/domain/stores/pipelines-store";
 import { useUiStore } from "@/domain/stores/ui-store";
 import { copyToClipboard } from "@/lib/clipboard";
 import { useShortcuts } from "@/lib/hooks/use-shortcuts";
 import { cn } from "@/lib/utils";
 import { Fancy, type FancyWindow, type UiWindow } from "@/lib/window";
 import { useState } from "react";
-import { PipelineDialog } from "./pipeline-dialog";
-
-const trimCommand = (cmd: string) => {
-  const maxSize = 60;
-  return cmd.length > maxSize ? cmd.slice(0, maxSize - 1).trimEnd() + "…" : cmd;
-};
+import { CommandsList } from "./commands-list";
+import { PipelineForm } from "./pipeline-form";
+import type { DropResult } from "@hello-pangea/dnd";
 
 const move = ({
   window,
@@ -42,6 +41,8 @@ const move = ({
 
 export const PipelinePanel = () => {
   const pipelines = usePipelinesStore((s) => s.pipelines);
+  const addPipeline = usePipelinesStore((s) => s.addPipeline);
+  const updatePipeline = usePipelinesStore((s) => s.updatePipeline);
   const focusedPipelineId = useUiStore((s) => s.focusedPipelineId);
   const focusedPipeline = pipelines.find((p) => p.id === focusedPipelineId);
   const commands = focusedPipeline?.commands ?? [];
@@ -49,7 +50,9 @@ export const PipelinePanel = () => {
   const window = Fancy(commandsWindow);
   const setCommandsWindow = useUiStore((s) => s.setCommandsWindow);
   const [copied, setCopied] = useState(new Set<number>());
-  const [currentDialog, setCurrentDialog] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentForm, setCurrentForm] = useState("");
+  const showForm = currentForm !== "";
 
   const yank = (wnd: FancyWindow) => {
     if (commands.length === 0) return;
@@ -74,8 +77,8 @@ export const PipelinePanel = () => {
 
   useShortcuts(
     {
-      n: () => setCurrentDialog("Pipeline"),
-      e: () => setCurrentDialog("Edit"),
+      n: () => setCurrentForm("Pipeline"),
+      e: () => setCurrentForm("Edit"),
       j: () =>
         setWindow(
           move({
@@ -110,7 +113,7 @@ export const PipelinePanel = () => {
         ),
     },
     {
-      enabled: currentDialog === "",
+      enabled: !isEditing && !showForm,
     }
   );
 
@@ -127,44 +130,65 @@ export const PipelinePanel = () => {
     yank(Fancy(newWindow));
   };
 
-  return (
-    <div className="flex">
-      <div>
-        <h1 className="text-xl mb-2">
-          {focusedPipeline?.title || "Untitled Pipeline"}
-        </h1>
-        <div className="flex flex-col gap-2">
-          {commands.map((command, index) => (
-            <div className="flex flex-col gap-1">
-              <p className="text-sm text-muted-foreground empty:hidden w-fit">
-                {command.description}
-              </p>
-              <Button
-                key={index}
-                variant="outline"
-                onClick={(event) => handleButtonClick(index, event)}
-                className={cn(
-                  "border-2 justify-start",
-                  window?.inBounds(index) && "border-pink-600",
-                  copied.has(index) && "border-green-500"
-                )}
-              >
-                {trimCommand(command.value)}
-              </Button>
-            </div>
-          ))}
-        </div>
-      </div>
+  const editedPipeline =
+    focusedPipeline && currentForm === "Edit" ? focusedPipeline : undefined;
 
-      <PipelineDialog
-        open={currentDialog === "Pipeline" || currentDialog === "Edit"}
-        onClose={() => setCurrentDialog("")}
-        pipeline={
-          focusedPipeline && currentDialog === "Edit"
-            ? focusedPipeline
-            : undefined
-        }
-      />
+  const edit = (p: NewPipeline) => {
+    if (editedPipeline) updatePipeline({ ...p, id: editedPipeline.id });
+    else addPipeline(p);
+    setCurrentForm("");
+  };
+
+  const reorder = (result: DropResult) => {
+    if (!result.destination || !focusedPipeline) return;
+
+    const items = Array.from(commands);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    updatePipeline({
+      ...focusedPipeline,
+      commands: items,
+    });
+  };
+
+  const handleEdit = (index: number, value: string) => {
+    if (!focusedPipeline) return;
+
+    const updatedCommands = [...commands];
+    updatedCommands[index] = { ...updatedCommands[index], value };
+
+    updatePipeline({
+      ...focusedPipeline,
+      commands: updatedCommands,
+    });
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <h1 className="text-xl">
+        {focusedPipeline?.title || "Untitled Pipeline"}
+      </h1>
+      <div className={cn("flex flex-col gap-2", showForm && "hidden")}>
+        <CommandsList
+          isEditing={isEditing}
+          commands={commands}
+          window={window}
+          copied={copied}
+          onButtonClick={handleButtonClick}
+          onReorder={reorder}
+          onStartEditing={() => setIsEditing(true)}
+          onCancelEditing={() => setIsEditing(false)}
+          onFinishEditing={handleEdit}
+        />
+      </div>
+      {showForm && (
+        <PipelineForm
+          onSubmit={edit}
+          onClose={() => setCurrentForm("")}
+          initialPipeline={editedPipeline}
+        />
+      )}
     </div>
   );
 };
