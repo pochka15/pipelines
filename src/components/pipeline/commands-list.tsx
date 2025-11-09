@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { Command } from "@/domain/stores/pipelines-store";
+import {
+  usePipelinesStore,
+  type Command,
+} from "@/domain/stores/pipelines-store";
 import type { FancyWindow } from "@/lib/window";
 import type { FC } from "react";
 import {
@@ -12,11 +15,44 @@ import {
 } from "@hello-pangea/dnd";
 import { GripVertical } from "lucide-react";
 import { useShortcuts } from "@/lib/hooks/use-shortcuts";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useUiStore } from "@/domain/stores/ui-store";
+import { createFilledVariablesSet } from "@/lib/template-vars";
 
 const trimCommand = (cmd: string) => {
   const maxSize = 60;
   return cmd.length > maxSize ? cmd.slice(0, maxSize - 1).trimEnd() + "…" : cmd;
+};
+
+const CommandText: FC<{ command: string; filledVariables: Set<string> }> = ({
+  command,
+  filledVariables,
+}) => {
+  const trimmed = trimCommand(command);
+  const parts = trimmed.split(/(\{[^}]+\})/);
+
+  return (
+    <>
+      {parts.map((part, index) => {
+        if (part.match(/^\{[^}]+\}$/)) {
+          const varName = part.slice(1, -1);
+          const isFilled = filledVariables.has(varName);
+          return (
+            <span
+              key={index}
+              className={cn(
+                "font-semibold",
+                isFilled ? "text-green-500" : "text-pink-600"
+              )}
+            >
+              {part}
+            </span>
+          );
+        }
+        return <span key={index}>{part}</span>;
+      })}
+    </>
+  );
 };
 
 export const CommandsList: FC<{
@@ -41,6 +77,17 @@ export const CommandsList: FC<{
   onFinishEditing,
 }) => {
   const [editValue, setEditValue] = useState("");
+
+  const focusedPipelineId = useUiStore((s) => s.focusedPipelineId);
+  const pipelines = usePipelinesStore((s) => s.pipelines);
+  const focusedPipeline = pipelines.find((p) => p.id === focusedPipelineId);
+
+  const filledVariables = useMemo(
+    () => createFilledVariablesSet(focusedPipeline?.vars),
+    // we just want to keep track of the id change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [focusedPipelineId]
+  );
 
   const handleDragEnd = (result: DropResult) => {
     if (onReorder) {
@@ -133,7 +180,10 @@ export const CommandsList: FC<{
                             copied.has(index) && "border-green-500"
                           )}
                         >
-                          {trimCommand(command.value)}
+                          <CommandText
+                            command={command.value}
+                            filledVariables={filledVariables}
+                          />
                         </Button>
                       )}
                     </div>

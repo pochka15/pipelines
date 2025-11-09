@@ -5,12 +5,13 @@ import {
 import { useUiStore } from "@/domain/stores/ui-store";
 import { copyToClipboard } from "@/lib/clipboard";
 import { useShortcuts } from "@/lib/hooks/use-shortcuts";
+import { withVars } from "@/lib/template-vars";
 import { cn } from "@/lib/utils";
 import { Fancy, type FancyWindow, type UiWindow } from "@/lib/window";
+import type { DropResult } from "@hello-pangea/dnd";
 import { useState } from "react";
 import { CommandsList } from "./commands-list";
 import { PipelineForm } from "./pipeline-form";
-import type { DropResult } from "@hello-pangea/dnd";
 
 const move = ({
   window,
@@ -39,7 +40,11 @@ const move = ({
   };
 };
 
-export const PipelinePanel = () => {
+export const PipelinePanel = ({
+  onSwitchToVars,
+}: {
+  onSwitchToVars: () => void;
+}) => {
   const pipelines = usePipelinesStore((s) => s.pipelines);
   const addPipeline = usePipelinesStore((s) => s.addPipeline);
   const updatePipeline = usePipelinesStore((s) => s.updatePipeline);
@@ -55,15 +60,16 @@ export const PipelinePanel = () => {
   const showForm = currentForm !== "";
 
   const yank = (wnd: FancyWindow) => {
-    if (commands.length === 0) return;
+    if (commands.length === 0 || !focusedPipeline) return;
 
     const selectedCommands = wnd.slice(commands);
+    const vars = focusedPipeline.vars || [];
 
     if (wnd.size === 1) {
-      copyToClipboard(selectedCommands[0].value);
+      copyToClipboard(withVars(selectedCommands[0].value, vars));
     } else {
       const joinedCommands = selectedCommands
-        .map((cmd) => cmd.value)
+        .map((cmd) => withVars(cmd.value, vars))
         .join(" && ");
       copyToClipboard(joinedCommands);
     }
@@ -79,6 +85,7 @@ export const PipelinePanel = () => {
     {
       n: () => setCurrentForm("Pipeline"),
       e: () => setCurrentForm("Edit"),
+      v: onSwitchToVars,
       j: () =>
         setWindow(
           move({

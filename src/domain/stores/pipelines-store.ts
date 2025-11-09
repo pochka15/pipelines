@@ -9,9 +9,15 @@ export type Command = {
   description?: string;
 };
 
+export type Variable = {
+  name: string;
+  value: string;
+};
+
 export type NewPipeline = {
   title: string;
   commands: Command[];
+  vars?: Variable[];
 };
 
 export type Pipeline = NewPipeline & {
