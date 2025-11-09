@@ -10,9 +10,9 @@ function App() {
 
       <div className="flex-1 flex justify-center">
         <div className="p-4 grid grid-cols-6 gap-8 w-full">
-          <PipelinesSidebar />
+          <PipelinesSidebar className="md:col-span-1 col-span-2" />
 
-          <div className="col-span-5">
+          <div className="col-span-4 md:col-span-5">
             <PipelinePanel />
           </div>
         </div>

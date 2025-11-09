@@ -27,7 +27,8 @@ export const PipelineForm: FC<{
   );
 
   const isEditing = !isNil(initialPipeline);
-  const canSubmit = !title.trim() || commands.every((cmd) => !cmd.value.trim());
+  const canSubmit =
+    title.trim() !== "" && commands.every((cmd) => cmd.value.trim() !== "");
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;

@@ -3,8 +3,9 @@ import { useUiStore } from "@/domain/stores/ui-store";
 import { cn } from "@/lib/utils";
 import { isEmpty } from "lodash";
 import { X } from "lucide-react";
+import type { FC } from "react";
 
-export const PipelinesSidebar = () => {
+export const PipelinesSidebar: FC<{ className?: string }> = ({ className }) => {
   const pipelines = usePipelinesStore((s) => s.pipelines);
   const removePipeline = usePipelinesStore((s) => s.removePipeline);
   const focusedPipelineId = useUiStore((s) => s.focusedPipelineId);
@@ -17,7 +18,7 @@ export const PipelinesSidebar = () => {
   };
 
   return (
-    <div className="space-y-2 group">
+    <div className={cn("space-y-2 group", className)}>
       {pipelines.map((pipeline) => (
         <div key={pipeline.id} className="flex items-center gap-2 group">
           <button
