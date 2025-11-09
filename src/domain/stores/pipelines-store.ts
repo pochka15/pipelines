@@ -24,11 +24,13 @@ export type PipelinesState = {
   addPipeline: (pipeline: NewPipeline) => void;
   removePipeline: (id: string) => void;
   updatePipeline: (pipeline: Pipeline) => void;
+  backup: () => void;
+  restore: () => Promise<void>;
 };
 
 export const usePipelinesStore = create<PipelinesState>()(
   persist(
-    immer((set) => ({
+    immer((set, get) => ({
       pipelines: [],
 
       addPipeline: (pipeline: NewPipeline) =>
@@ -48,6 +50,26 @@ export const usePipelinesStore = create<PipelinesState>()(
             state.pipelines[index] = pipeline;
           }
         }),
+
+      backup: () => {
+        const state = get();
+        const json = JSON.stringify(state.pipelines);
+        navigator.clipboard.writeText(json);
+      },
+
+      restore: async () => {
+        try {
+          const text = await navigator.clipboard.readText();
+          const pipelines = JSON.parse(text);
+          if (Array.isArray(pipelines)) {
+            set((state) => {
+              state.pipelines = pipelines;
+            });
+          }
+        } catch (error) {
+          console.error("Failed to restore pipelines:", error);
+        }
+      },
     })),
     {
       name: "pipelines-storage",
