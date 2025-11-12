@@ -21,7 +21,7 @@ export const VarsPanel = ({ onSwitchBack }: { onSwitchBack: () => void }) => {
   const [textareaValue, setTextareaValue] = useState(() => {
     if (!focusedPipeline) return "";
 
-    if (focusedPipeline.vars && focusedPipeline.vars.length > 0) {
+    if (focusedPipeline.vars?.length) {
       return serializeVarsToBulletList(focusedPipeline.vars);
     } else {
       const varNames = extractVariableNames(focusedPipeline.commands);

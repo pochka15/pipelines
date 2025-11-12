@@ -17,7 +17,10 @@ import { GripVertical } from "lucide-react";
 import { useShortcuts } from "@/lib/hooks/use-shortcuts";
 import { useMemo, useState } from "react";
 import { useUiStore } from "@/domain/stores/ui-store";
-import { createFilledVariablesSet } from "@/lib/template-vars";
+import {
+  createFilledVariablesSet,
+  splitByVariables,
+} from "@/lib/template-vars";
 
 const trimCommand = (cmd: string) => {
   const maxSize = 60;
@@ -28,31 +31,24 @@ const CommandText: FC<{ command: string; filledVariables: Set<string> }> = ({
   command,
   filledVariables,
 }) => {
-  const trimmed = trimCommand(command);
-  const parts = trimmed.split(/(\{[^}]+\})/);
-
-  return (
-    <>
-      {parts.map((part, index) => {
-        if (part.match(/^\{[^}]+\}$/)) {
-          const varName = part.slice(1, -1);
-          const isFilled = filledVariables.has(varName);
-          return (
-            <span
-              key={index}
-              className={cn(
-                "font-semibold",
-                isFilled ? "text-green-500" : "text-pink-600"
-              )}
-            >
-              {part}
-            </span>
-          );
-        }
-        return <span key={index}>{part}</span>;
-      })}
-    </>
-  );
+  return splitByVariables(trimCommand(command)).map((chunk, index) => {
+    if (chunk.isVariable) {
+      const isFilled = filledVariables.has(chunk.text);
+      return (
+        <span
+          key={index}
+          className={isFilled ? "text-green-500" : "text-pink-600"}
+        >
+          {`{${chunk.text}}`}
+        </span>
+      );
+    }
+    return (
+      <span key={index} className="whitespace-pre">
+        {chunk.text}
+      </span>
+    );
+  });
 };
 
 export const CommandsList: FC<{
@@ -175,7 +171,7 @@ export const CommandsList: FC<{
                           variant="outline"
                           onClick={(event) => onButtonClick(index, event)}
                           className={cn(
-                            "border-2 justify-start flex-1",
+                            "border-2 justify-start flex-1 gap-0 font-mono",
                             window?.inBounds(index) && "border-pink-600",
                             copied.has(index) && "border-green-500"
                           )}
