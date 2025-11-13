@@ -1,4 +1,5 @@
-import { remove } from "lodash";
+import { serializeVarsToBulletList } from "@/lib/template-vars";
+import { isArray, isNil, remove } from "lodash";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
@@ -17,7 +18,7 @@ export type Variable = {
 export type NewPipeline = {
   title: string;
   commands: Command[];
-  vars?: Variable[];
+  vars: { raw: string; parsed: Variable[]; };
 };
 
 export type Pipeline = NewPipeline & {
@@ -58,8 +59,7 @@ export const usePipelinesStore = create<PipelinesState>()(
         }),
 
       backup: () => {
-        const state = get();
-        const json = JSON.stringify(state.pipelines);
+        const json = JSON.stringify(get().pipelines);
         navigator.clipboard.writeText(json);
       },
 
@@ -80,6 +80,23 @@ export const usePipelinesStore = create<PipelinesState>()(
     {
       name: "pipelines-storage",
       storage: createJSONStorage(() => localStorage),
+      version: 1,
+      migrate: (persistedState, version) => {
+        const st = persistedState as PipelinesState;
+
+        // Migrate to v1
+        if (version === 0) {
+          st.pipelines.forEach((pi) => {
+            if (isNil(pi.vars)) pi.vars = { raw: "", parsed: [] };
+            else if (isArray(pi.vars)) {
+              const parsed = pi.vars as Variable[];
+              pi.vars = { raw: serializeVarsToBulletList(parsed), parsed };
+            }
+          });
+        }
+
+        return st;
+      },
       onRehydrateStorage: () => (state) => {
         // Ensure pipelines is always an array
         if (!state?.pipelines || !Array.isArray(state.pipelines)) {

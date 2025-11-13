@@ -63,7 +63,7 @@ export const PipelinePanel = ({
     if (commands.length === 0 || !focusedPipeline) return;
 
     const selectedCommands = wnd.slice(commands);
-    const vars = focusedPipeline.vars || [];
+    const vars = focusedPipeline.vars.parsed;
 
     if (wnd.size === 1) {
       copyToClipboard(withVars(selectedCommands[0].value, vars));
@@ -173,22 +173,21 @@ export const PipelinePanel = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <h1 className="text-xl">
+      <h1 className="text-xl self-start">
         {focusedPipeline?.title || "Untitled Pipeline"}
       </h1>
-      <div className={cn("flex flex-col gap-2", showForm && "hidden")}>
-        <CommandsList
-          isEditing={isEditing}
-          commands={commands}
-          window={window}
-          copied={copied}
-          onButtonClick={handleButtonClick}
-          onReorder={reorder}
-          onStartEditing={() => setIsEditing(true)}
-          onCancelEditing={() => setIsEditing(false)}
-          onFinishEditing={handleEdit}
-        />
-      </div>
+      <CommandsList
+        isEditing={isEditing}
+        isHidden={showForm}
+        commands={commands}
+        window={window}
+        copied={copied}
+        onButtonClick={handleButtonClick}
+        onReorder={reorder}
+        onStartEditing={() => setIsEditing(true)}
+        onCancelEditing={() => setIsEditing(false)}
+        onFinishEditing={handleEdit}
+      />
       {showForm && (
         <PipelineForm
           onSubmit={edit}

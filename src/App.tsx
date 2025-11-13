@@ -19,7 +19,7 @@ function App() {
         <div className="p-4 grid grid-cols-6 gap-8 w-full">
           <PipelinesSidebar className="md:col-span-1 col-span-2" />
 
-          <div className="col-span-4 md:col-span-5">
+          <div key={focusedPipelineId} className="col-span-4 md:col-span-5">
             {showVarsPanel ? (
               <VarsPanel onSwitchBack={() => setShowVarsPanel(false)} />
             ) : (

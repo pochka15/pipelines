@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePipelinesStore } from "@/domain/stores/pipelines-store";
 import { useUiStore } from "@/domain/stores/ui-store";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,6 @@ import { useDebounce } from "@/lib/hooks/use-debounce";
 import { useShortcuts } from "@/lib/hooks/use-shortcuts";
 import {
   parseVarsFromBulletList,
-  serializeVarsToBulletList,
   extractVariableNames,
 } from "@/lib/template-vars";
 
@@ -16,37 +15,44 @@ export const VarsPanel = ({ onSwitchBack }: { onSwitchBack: () => void }) => {
   const updatePipeline = usePipelinesStore((s) => s.updatePipeline);
   const focusedPipelineId = useUiStore((s) => s.focusedPipelineId);
   const focusedPipeline = pipelines.find((p) => p.id === focusedPipelineId);
-  useShortcuts({ escape: onSwitchBack });
+  useShortcuts({ escape: onSwitchBack, "cmd+j": onSwitchBack });
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const [textareaValue, setTextareaValue] = useState(() => {
-    if (!focusedPipeline) return "";
-
-    if (focusedPipeline.vars?.length) {
-      return serializeVarsToBulletList(focusedPipeline.vars);
-    } else {
-      const varNames = extractVariableNames(focusedPipeline.commands);
-      return varNames.map((varName) => `- ${varName}: `).join("\n");
+  useEffect(() => {
+    const x = textareaRef.current;
+    if (x) {
+      x.focus();
+      x.setSelectionRange(x.value.length, x.value.length);
     }
-  });
+  }, []);
 
-  const debouncedTextareaValue = useDebounce(textareaValue, 200);
+  const [textareaValue, setTextareaValue] = useState(
+    focusedPipeline?.vars.raw ||
+      extractVariableNames(focusedPipeline?.commands || [])
+        .map((varName) => `- ${varName}: `)
+        .join("\n") ||
+      ""
+  );
+
+  const debouncedTextareaValue = useDebounce(textareaValue, 100);
 
   useEffect(() => {
     if (focusedPipeline) {
       const parsedVars = parseVarsFromBulletList(debouncedTextareaValue);
-      updatePipeline({ ...focusedPipeline, vars: parsedVars });
+      updatePipeline({
+        ...focusedPipeline,
+        vars: { raw: debouncedTextareaValue, parsed: parsedVars },
+      });
     }
+    // Ignore focusedPipeline deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedTextareaValue, updatePipeline]);
-
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setTextareaValue(e.target.value);
-  };
 
   const handleFill = () => {
     if (!focusedPipeline) return;
 
-    const existingVarNames = focusedPipeline.vars?.map((v) => v.name) || [];
+    const existingVarNames =
+      focusedPipeline.vars.parsed.map((v) => v.name) || [];
     const allVarNames = extractVariableNames(focusedPipeline.commands);
 
     const newVars = allVarNames
@@ -54,15 +60,9 @@ export const VarsPanel = ({ onSwitchBack }: { onSwitchBack: () => void }) => {
       .map((varName) => `- ${varName}: todo`);
 
     if (newVars.length > 0) {
-      const newText =
-        textareaValue + (textareaValue ? "\n" : "") + newVars.join("\n");
-      setTextareaValue(newText);
-
-      const parsedVars = parseVarsFromBulletList(newText);
-      updatePipeline({
-        ...focusedPipeline,
-        vars: parsedVars,
-      });
+      setTextareaValue(
+        textareaValue + (textareaValue ? "\n" : "") + newVars.join("\n")
+      );
     }
   };
 
@@ -75,8 +75,9 @@ export const VarsPanel = ({ onSwitchBack }: { onSwitchBack: () => void }) => {
         </Button>
       </div>
       <Textarea
+        ref={textareaRef}
         value={textareaValue}
-        onChange={handleTextareaChange}
+        onChange={(e) => setTextareaValue(e.target.value)}
         placeholder="- varName: value"
         className="min-h-[200px] font-mono text-sm"
       />

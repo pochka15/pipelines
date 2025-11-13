@@ -89,6 +89,7 @@ export const PipelineForm: FC<{
           value: cmd.value,
           description: cmd.description,
         })),
+      vars: { raw: "", parsed: [] },
     });
   };
 

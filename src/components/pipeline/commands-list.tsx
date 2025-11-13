@@ -56,6 +56,7 @@ export const CommandsList: FC<{
   window: FancyWindow;
   copied: Set<number>;
   isEditing: boolean;
+  isHidden: boolean;
   onButtonClick: (i: number, event: React.MouseEvent) => void;
   onStartEditing?: () => void;
   onCancelEditing?: () => void;
@@ -63,6 +64,7 @@ export const CommandsList: FC<{
   onFinishEditing?: (index: number, value: string) => void;
 }> = ({
   isEditing,
+  isHidden,
   commands,
   window,
   copied,
@@ -79,7 +81,7 @@ export const CommandsList: FC<{
   const focusedPipeline = pipelines.find((p) => p.id === focusedPipelineId);
 
   const filledVariables = useMemo(
-    () => createFilledVariablesSet(focusedPipeline?.vars),
+    () => createFilledVariablesSet(focusedPipeline?.vars?.parsed),
     // we just want to keep track of the id change
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [focusedPipelineId]
@@ -116,12 +118,13 @@ export const CommandsList: FC<{
     {
       s: enterSubstituteMode,
     },
-    { enabled: !isEditing }
+    { enabled: !isHidden && !isEditing }
   );
 
   useShortcuts(
     {
       escape: exitSubstituteMode,
+      "cmd+j": exitSubstituteMode,
       enter: saveEdit,
     },
     { enabled: isEditing }
@@ -134,7 +137,7 @@ export const CommandsList: FC<{
           <div
             {...provided.droppableProps}
             ref={provided.innerRef}
-            className="flex flex-col gap-2"
+            className={cn("flex flex-col gap-2", isHidden && "hidden")}
           >
             {commands.map((command, index) => (
               <Draggable
