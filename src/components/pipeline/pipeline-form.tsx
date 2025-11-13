@@ -96,6 +96,7 @@ export const PipelineForm: FC<{
   useShortcuts({
     escape: isEditing ? submit : onClose,
     "cmd+j": isEditing ? submit : onClose,
+    "alt+j": isEditing ? submit : onClose,
   });
 
   return (

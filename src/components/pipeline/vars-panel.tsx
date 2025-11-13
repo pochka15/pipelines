@@ -15,8 +15,13 @@ export const VarsPanel = ({ onSwitchBack }: { onSwitchBack: () => void }) => {
   const updatePipeline = usePipelinesStore((s) => s.updatePipeline);
   const focusedPipelineId = useUiStore((s) => s.focusedPipelineId);
   const focusedPipeline = pipelines.find((p) => p.id === focusedPipelineId);
-  useShortcuts({ escape: onSwitchBack, "cmd+j": onSwitchBack });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useShortcuts({
+    escape: onSwitchBack,
+    "cmd+j": onSwitchBack,
+    "alt+j": onSwitchBack,
+  });
 
   useEffect(() => {
     const x = textareaRef.current;

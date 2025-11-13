@@ -125,6 +125,7 @@ export const CommandsList: FC<{
     {
       escape: exitSubstituteMode,
       "cmd+j": exitSubstituteMode,
+      "alt+j": exitSubstituteMode,
       enter: saveEdit,
     },
     { enabled: isEditing }
