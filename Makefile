@@ -25,5 +25,8 @@ fix-formatting:
 fix-lint:
 	npm run lint --fix
 
-create-patch:
-	git format-patch -1 --stdout $(HASH) | pbcopy
+build: full-check
+	npm run build
+
+create-patch: full-check
+	git format-patch -$(N) --stdout | pbcopy

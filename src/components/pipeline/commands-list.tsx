@@ -1,46 +1,56 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   usePipelinesStore,
   type Command,
+  type Variable,
 } from "@/domain/stores/pipelines-store";
-import type { FancyWindow } from "@/lib/window";
-import type { FC } from "react";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  type DropResult,
-} from "@hello-pangea/dnd";
-import { GripVertical } from "lucide-react";
-import { useShortcuts } from "@/lib/hooks/use-shortcuts";
-import { useMemo, useState } from "react";
 import { useUiStore } from "@/domain/stores/ui-store";
+import { useNuphy } from "@/lib/nuphy/use-nuphy";
+import { cn } from "@/lib/random/utils";
 import {
-  createFilledVariablesSet,
+  createFilledVariablesMapping,
   splitByVariables,
 } from "@/lib/template-vars";
+import type { FancyWindow } from "@/lib/window";
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  type DropResult,
+} from "@hello-pangea/dnd";
+import { isNil } from "lodash";
+import { GripVertical } from "lucide-react";
+import type { FC } from "react";
+import { useMemo, useState } from "react";
 
-const trimCommand = (cmd: string) => {
-  const maxSize = 60;
-  return cmd.length > maxSize ? cmd.slice(0, maxSize - 1).trimEnd() + "…" : cmd;
-};
-
-const CommandText: FC<{ command: string; filledVariables: Set<string> }> = ({
-  command,
-  filledVariables,
-}) => {
-  return splitByVariables(trimCommand(command)).map((chunk, index) => {
+const CommandText: FC<{
+  command: string;
+  filledVariables: Map<string, Variable>;
+}> = ({ command, filledVariables }) => {
+  return splitByVariables(command).map((chunk, index) => {
     if (chunk.isVariable) {
-      const isFilled = filledVariables.has(chunk.text);
+      const variable = filledVariables.get(chunk.text);
+      const isFilled = !isNil(variable);
       return (
-        <span
-          key={index}
-          className={isFilled ? "text-green-500" : "text-pink-600"}
-        >
-          {`{${chunk.text}}`}
-        </span>
+        <Tooltip key={index} delayDuration={0}>
+          <TooltipTrigger asChild>
+            <span
+              key={index}
+              className={isFilled ? "text-variable-set" : "text-variable-unset"}
+            >
+              {`{${chunk.text}}`}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent className={cn(!isFilled && "hidden")}>
+            <p>{variable?.value}</p>
+          </TooltipContent>
+        </Tooltip>
       );
     }
     return (
@@ -49,6 +59,35 @@ const CommandText: FC<{ command: string; filledVariables: Set<string> }> = ({
       </span>
     );
   });
+};
+
+const NotFilledVarsIndicator: FC<{
+  command: string;
+  filledVariables: Map<string, Variable>;
+}> = ({ command, filledVariables }) => {
+  const split = splitByVariables(command);
+  const unfilledVars = split
+    .filter((it) => it.isVariable && !filledVariables.has(it.text))
+    .map((it) => it.text);
+
+  if (unfilledVars.length === 0) return null;
+  return (
+    <Tooltip delayDuration={0}>
+      <TooltipTrigger asChild>
+        <div className="text-variable-unset h-full w-4">!</div>
+      </TooltipTrigger>
+      <TooltipContent>
+        <div>
+          <p className="font-semibold">Unfilled variables:</p>
+          <ul className="list-inside list-disc">
+            {unfilledVars.map((varName, index) => (
+              <li key={index}>{varName}</li>
+            ))}
+          </ul>
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
 };
 
 export const CommandsList: FC<{
@@ -81,7 +120,7 @@ export const CommandsList: FC<{
   const focusedPipeline = pipelines.find((p) => p.id === focusedPipelineId);
 
   const filledVariables = useMemo(
-    () => createFilledVariablesSet(focusedPipeline?.vars?.parsed),
+    () => createFilledVariablesMapping(focusedPipeline?.vars?.parsed),
     // we just want to keep track of the id change
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [focusedPipelineId]
@@ -114,22 +153,31 @@ export const CommandsList: FC<{
     exitSubstituteMode();
   };
 
-  useShortcuts(
-    {
-      s: enterSubstituteMode,
-    },
-    { enabled: !isHidden && !isEditing }
-  );
+  useNuphy({
+    name: "commandItem",
+    enabled: !isHidden,
+    keys: (key, evt) => {
+      if (!isEditing && key === "s") {
+        evt.preventDefault();
+        enterSubstituteMode();
+        return true;
+      }
 
-  useShortcuts(
-    {
-      escape: exitSubstituteMode,
-      "cmd+j": exitSubstituteMode,
-      "alt+j": exitSubstituteMode,
-      enter: saveEdit,
+      if (!isEditing) return false;
+
+      if (key === "Escape") {
+        exitSubstituteMode();
+        return true;
+      }
+
+      if (key === "Enter") {
+        saveEdit();
+        return true;
+      }
+
+      return false;
     },
-    { enabled: isEditing }
-  );
+  });
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
@@ -153,13 +201,13 @@ export const CommandsList: FC<{
                     key={index}
                     className="flex flex-col gap-1"
                   >
-                    <p className="text-sm text-muted-foreground empty:hidden w-fit">
+                    <p className="text-muted-foreground w-fit text-sm empty:hidden">
                       {command.description}
                     </p>
                     <div className="flex items-center gap-2">
                       <div
                         {...provided.dragHandleProps}
-                        className="text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
+                        className="text-drag-handle hover:text-drag-handle-hover cursor-grab active:cursor-grabbing"
                       >
                         <GripVertical size={16} />
                       </div>
@@ -175,9 +223,11 @@ export const CommandsList: FC<{
                           variant="outline"
                           onClick={(event) => onButtonClick(index, event)}
                           className={cn(
-                            "border-2 justify-start flex-1 gap-0 font-mono",
-                            window?.inBounds(index) && "border-pink-600",
-                            copied.has(index) && "border-green-500"
+                            "flex flex-1 justify-start gap-0 overflow-hidden border-2 font-mono",
+                            window?.inBounds(index) &&
+                              "border-variable-unset dark:border-variable-unset",
+                            copied.has(index) &&
+                              "border-variable-set dark:border-variable-set"
                           )}
                         >
                           <CommandText
@@ -186,6 +236,10 @@ export const CommandsList: FC<{
                           />
                         </Button>
                       )}
+                      <NotFilledVarsIndicator
+                        command={command.value}
+                        filledVariables={filledVariables}
+                      />
                     </div>
                   </div>
                 )}

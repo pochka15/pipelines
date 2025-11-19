@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { usePipelinesStore } from "@/domain/stores/pipelines-store";
-import { useUiStore } from "@/domain/stores/ui-store";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { usePipelinesStore } from "@/domain/stores/pipelines-store";
+import { useUiStore } from "@/domain/stores/ui-store";
 import { useDebounce } from "@/lib/hooks/use-debounce";
-import { useShortcuts } from "@/lib/hooks/use-shortcuts";
+import { useNuphy } from "@/lib/nuphy/use-nuphy";
 import {
-  parseVarsFromBulletList,
   extractVariableNames,
+  parseVarsFromBulletList,
 } from "@/lib/template-vars";
+import { useEffect, useRef, useState } from "react";
 
 export const VarsPanel = ({ onSwitchBack }: { onSwitchBack: () => void }) => {
   const pipelines = usePipelinesStore((s) => s.pipelines);
@@ -17,10 +17,14 @@ export const VarsPanel = ({ onSwitchBack }: { onSwitchBack: () => void }) => {
   const focusedPipeline = pipelines.find((p) => p.id === focusedPipelineId);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useShortcuts({
-    escape: onSwitchBack,
-    "cmd+j": onSwitchBack,
-    "alt+j": onSwitchBack,
+  useNuphy({
+    name: "varsPanel",
+    enabled: true,
+    keys: (key) => {
+      const handled = key === "Escape";
+      if (handled) onSwitchBack();
+      return handled;
+    },
   });
 
   useEffect(() => {
@@ -73,7 +77,7 @@ export const VarsPanel = ({ onSwitchBack }: { onSwitchBack: () => void }) => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Variables</h2>
         <Button onClick={handleFill} variant="outline" size="sm">
           Fill

@@ -45,16 +45,18 @@ export const serializeVarsToBulletList = (vars: Variable[]): string => {
   return vars.map((v) => `- ${v.name}: ${v.value}`).join("\n");
 };
 
-export const createFilledVariablesSet = (vars?: Variable[]): Set<string> => {
-  const filled = new Set<string>();
+export const createFilledVariablesMapping = (
+  vars?: Variable[]
+): Map<string, Variable> => {
+  const mapping = new Map<string, Variable>();
   if (vars) {
     vars.forEach((variable) => {
       if (variable.value.trim() !== "") {
-        filled.add(variable.name);
+        mapping.set(variable.name, variable);
       }
     });
   }
-  return filled;
+  return mapping;
 };
 
 export const withVars = (command: string, vars: Variable[]): string => {

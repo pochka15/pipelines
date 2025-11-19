@@ -4,14 +4,16 @@ import {
 } from "@/domain/stores/pipelines-store";
 import { useUiStore } from "@/domain/stores/ui-store";
 import { copyToClipboard } from "@/lib/clipboard";
-import { useShortcuts } from "@/lib/hooks/use-shortcuts";
+import { useNuphy } from "@/lib/nuphy/use-nuphy";
 import { withVars } from "@/lib/template-vars";
-import { cn } from "@/lib/utils";
 import { Fancy, type FancyWindow, type UiWindow } from "@/lib/window";
 import type { DropResult } from "@hello-pangea/dnd";
 import { useState } from "react";
 import { CommandsList } from "./commands-list";
 import { PipelineForm } from "./pipeline-form";
+
+const withinBounds = (n: number, lower: number, upper: number) =>
+  Math.max(lower, Math.min(upper, n));
 
 const move = ({
   window,
@@ -24,19 +26,19 @@ const move = ({
   shift: boolean;
   commandsSize: number;
 }): UiWindow => {
-  const cursor = window?.cursor || 0;
   const size = window?.size || 0;
+  const down = !up;
 
-  const newCursor =
-    shift && !up
-      ? cursor
-      : Math.max(0, Math.min(commandsSize - 1, cursor + (up ? -1 : 1)));
+  let cursor = window?.cursor || 0;
+  if (up) cursor -= 1;
+  else if (down && !shift) cursor += size;
+  cursor = withinBounds(cursor, 0, commandsSize - 1);
 
   const newSize = shift ? size + 1 : 1;
 
   return {
-    cursor: newCursor,
-    size: Math.min(newSize, commandsSize - newCursor),
+    cursor,
+    size: Math.min(newSize, commandsSize - cursor),
   };
 };
 
@@ -81,48 +83,68 @@ export const PipelinePanel = ({
     setCopied(new Set<number>());
   };
 
-  useShortcuts(
-    {
-      n: () => setCurrentForm("Pipeline"),
-      e: () => setCurrentForm("Edit"),
-      v: onSwitchToVars,
-      j: () =>
-        setWindow(
-          move({
-            window,
-            up: false,
-            shift: false,
-            commandsSize: commands.length,
-          })
-        ),
-      k: () =>
-        setWindow(
-          move({
-            window,
-            up: true,
-            shift: false,
-            commandsSize: commands.length,
-          })
-        ),
-      y: () => yank(window),
-      "shift+j": () =>
-        setWindow(
-          move({
-            window,
-            up: false,
-            shift: true,
-            commandsSize: commands.length,
-          })
-        ),
-      "shift+k": () =>
-        setWindow(
-          move({ window, up: true, shift: true, commandsSize: commands.length })
-        ),
+  useNuphy({
+    name: "pipelinePanel",
+    enabled: !isEditing && !showForm,
+    keys: (key, evt) => {
+      const mapping = {
+        n: () => {
+          evt.preventDefault();
+          setCurrentForm("Pipeline");
+        },
+        e: () => {
+          evt.preventDefault();
+          setCurrentForm("Edit");
+        },
+        v: () => {
+          evt.preventDefault();
+          onSwitchToVars();
+        },
+        j: () =>
+          setWindow(
+            move({
+              window,
+              up: false,
+              shift: false,
+              commandsSize: commands.length,
+            })
+          ),
+        k: () =>
+          setWindow(
+            move({
+              window,
+              up: true,
+              shift: false,
+              commandsSize: commands.length,
+            })
+          ),
+        y: () => yank(window),
+        Escape: () => setWindow({ cursor: window.cursor, size: 1 }),
+        "shift+J": () =>
+          setWindow(
+            move({
+              window,
+              up: false,
+              shift: true,
+              commandsSize: commands.length,
+            })
+          ),
+        "shift+K": () =>
+          setWindow(
+            move({
+              window,
+              up: true,
+              shift: true,
+              commandsSize: commands.length,
+            })
+          ),
+      };
+
+      const handled = key in mapping;
+      if (handled) mapping[key as keyof typeof mapping]();
+      return handled;
     },
-    {
-      enabled: !isEditing && !showForm,
-    }
-  );
+  });
 
   const handleButtonClick = (i: number, event: React.MouseEvent) => {
     let newWindow: UiWindow;
@@ -173,7 +195,7 @@ export const PipelinePanel = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <h1 className="text-xl self-start">
+      <h1 className="self-start text-xl">
         {focusedPipeline?.title || "Untitled Pipeline"}
       </h1>
       <CommandsList

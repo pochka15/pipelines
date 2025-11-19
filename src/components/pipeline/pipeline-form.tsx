@@ -4,19 +4,20 @@ import {
   type NewPipeline,
   type Pipeline,
 } from "@/domain/stores/pipelines-store";
+import { useNuphy } from "@/lib/nuphy/use-nuphy";
 import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
+import { isNil } from "lodash";
 import { Plus } from "lucide-react";
 import type { FC } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CommandItem, type CommandItemData } from "./command-item";
-import { useShortcuts } from "@/lib/hooks/use-shortcuts";
-import { isNil } from "lodash";
 
 export const PipelineForm: FC<{
   onSubmit: (pipeline: NewPipeline) => void;
   onClose: () => void;
   initialPipeline?: Pipeline;
 }> = ({ onSubmit, onClose, initialPipeline }) => {
+  const titleRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(initialPipeline?.title || "");
   const [commands, setCommands] = useState<CommandItemData[]>(
     initialPipeline?.commands.map((cmd, i) => ({
@@ -89,19 +90,30 @@ export const PipelineForm: FC<{
           value: cmd.value,
           description: cmd.description,
         })),
-      vars: { raw: "", parsed: [] },
+      vars: initialPipeline?.vars ?? { raw: "", parsed: [] },
     });
   };
 
-  useShortcuts({
-    escape: isEditing ? submit : onClose,
-    "cmd+j": isEditing ? submit : onClose,
-    "alt+j": isEditing ? submit : onClose,
+  useNuphy({
+    name: "pipelineForm",
+    enabled: true,
+    keys: (key) => {
+      const handled = key === "Escape" || key === "cmd+j" || key === "alt+j";
+
+      if (handled && isEditing) submit();
+      else if (handled) onClose();
+      return handled;
+    },
   });
 
+  useEffect(() => {
+    titleRef.current?.focus();
+  }, []);
+
   return (
-    <div className="space-y-4 max-w-2xl">
+    <div className="max-w-2xl space-y-4">
       <Input
+        ref={titleRef}
         placeholder="Pipeline title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}

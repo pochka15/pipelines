@@ -31,6 +31,7 @@ export type PipelinesState = {
   addPipeline: (pipeline: NewPipeline) => void;
   removePipeline: (id: string) => void;
   updatePipeline: (pipeline: Pipeline) => void;
+  reorderPipelines: (sourceIndex: number, destinationIndex: number) => void;
   backup: () => void;
   restore: () => Promise<void>;
 };
@@ -56,6 +57,12 @@ export const usePipelinesStore = create<PipelinesState>()(
           if (index !== -1) {
             state.pipelines[index] = pipeline;
           }
+        }),
+
+      reorderPipelines: (sourceIndex: number, destinationIndex: number) =>
+        set((state) => {
+          const [removed] = state.pipelines.splice(sourceIndex, 1);
+          state.pipelines.splice(destinationIndex, 0, removed);
         }),
 
       backup: () => {
