@@ -18,7 +18,7 @@ export type Variable = {
 export type NewPipeline = {
   title: string;
   commands: Command[];
-  vars: { raw: string; parsed: Variable[]; };
+  vars: { raw: string; parsed: Variable[] };
 };
 
 export type Pipeline = NewPipeline & {
