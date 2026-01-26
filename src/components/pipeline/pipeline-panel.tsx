@@ -4,6 +4,7 @@ import {
 } from "@/domain/stores/pipelines-store";
 import { useUiStore } from "@/domain/stores/ui-store";
 import { copyToClipboard } from "@/lib/clipboard";
+import { keyboardShortcuts } from "@/lib/nuphy/mappings";
 import { useNuphy } from "@/lib/nuphy/use-nuphy";
 import { withVars } from "@/lib/template-vars";
 import { Fancy, type FancyWindow, type UiWindow } from "@/lib/window";
@@ -87,20 +88,24 @@ export const PipelinePanel = ({
     name: "pipelinePanel",
     enabled: !isEditing && !showForm,
     keys: (key, evt) => {
+      type PipelinePanelShortcuts = typeof keyboardShortcuts.pipelinePanel;
+      const m = (keyName: keyof PipelinePanelShortcuts) =>
+        keyboardShortcuts.pipelinePanel[keyName].key;
+
       const mapping = {
-        n: () => {
+        [m("n")]: () => {
           evt.preventDefault();
           setCurrentForm("Pipeline");
         },
-        e: () => {
+        [m("e")]: () => {
           evt.preventDefault();
           setCurrentForm("Edit");
         },
-        v: () => {
+        [m("v")]: () => {
           evt.preventDefault();
           onSwitchToVars();
         },
-        j: () =>
+        [m("j")]: () =>
           setWindow(
             move({
               window,
@@ -109,7 +114,7 @@ export const PipelinePanel = ({
               commandsSize: commands.length,
             })
           ),
-        k: () =>
+        [m("k")]: () =>
           setWindow(
             move({
               window,
@@ -118,9 +123,26 @@ export const PipelinePanel = ({
               commandsSize: commands.length,
             })
           ),
-        y: () => yank(window),
-        Escape: () => setWindow({ cursor: window.cursor, size: 1 }),
-        "shift+J": () =>
+        [m("ArrowDown")]: () =>
+          setWindow(
+            move({
+              window,
+              up: false,
+              shift: false,
+              commandsSize: commands.length,
+            })
+          ),
+        [m("ArrowUp")]: () =>
+          setWindow(
+            move({
+              window,
+              up: true,
+              shift: false,
+              commandsSize: commands.length,
+            })
+          ),
+        [m("y")]: () => yank(window),
+        [m("shift+J")]: () =>
           setWindow(
             move({
               window,
@@ -129,7 +151,25 @@ export const PipelinePanel = ({
               commandsSize: commands.length,
             })
           ),
-        "shift+K": () =>
+        [m("shift+K")]: () =>
+          setWindow(
+            move({
+              window,
+              up: true,
+              shift: true,
+              commandsSize: commands.length,
+            })
+          ),
+        [m("shift+ArrowDown")]: () =>
+          setWindow(
+            move({
+              window,
+              up: false,
+              shift: true,
+              commandsSize: commands.length,
+            })
+          ),
+        [m("shift+ArrowUp")]: () =>
           setWindow(
             move({
               window,
@@ -139,6 +179,13 @@ export const PipelinePanel = ({
             })
           ),
       };
+
+      const esc = key === m("Escape");
+      if (esc && window.size > 1) {
+        evt.preventDefault();
+        setWindow({ cursor: window.cursor, size: 1 });
+        return true;
+      }
 
       const handled = key in mapping;
       if (handled) mapping[key as keyof typeof mapping]();

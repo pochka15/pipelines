@@ -11,6 +11,7 @@ import {
   type Variable,
 } from "@/domain/stores/pipelines-store";
 import { useUiStore } from "@/domain/stores/ui-store";
+import { keyboardShortcuts } from "@/lib/nuphy/mappings";
 import { useNuphy } from "@/lib/nuphy/use-nuphy";
 import { cn } from "@/lib/random/utils";
 import {
@@ -157,7 +158,9 @@ export const CommandsList: FC<{
     name: "commandItem",
     enabled: !isHidden,
     keys: (key, evt) => {
-      if (!isEditing && key === "s") {
+      const shortcuts = keyboardShortcuts.commandItem;
+
+      if (!isEditing && key === shortcuts.s.key) {
         evt.preventDefault();
         enterSubstituteMode();
         return true;
@@ -165,17 +168,17 @@ export const CommandsList: FC<{
 
       if (!isEditing) return false;
 
-      if (key === "Escape") {
+      if (key === shortcuts.Escape.key) {
         exitSubstituteMode();
         return true;
       }
 
-      if (key === "Enter") {
+      if (key === shortcuts.Enter.key) {
         saveEdit();
         return true;
       }
 
-      return false;
+      return true;
     },
   });
 

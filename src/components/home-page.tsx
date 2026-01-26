@@ -1,4 +1,5 @@
 import { CommandLine } from "@/components/command-line";
+import { Help } from "@/components/help";
 import { ModeToggle } from "@/components/mode-toggle";
 import { NotesPanel } from "@/components/notes-panel";
 import { PipelinePanel } from "@/components/pipeline/pipeline-panel";
@@ -20,6 +21,7 @@ export const HomePage = () => {
     <div className="relative h-screen">
       <CommandLine />
       <NotesPanel />
+      <Help />
       <div className="flex justify-end gap-2 p-4">
         <Toolbar />
         <ModeToggle />

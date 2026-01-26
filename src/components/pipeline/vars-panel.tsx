@@ -3,6 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePipelinesStore } from "@/domain/stores/pipelines-store";
 import { useUiStore } from "@/domain/stores/ui-store";
 import { useDebounce } from "@/lib/hooks/use-debounce";
+import { keyboardShortcuts } from "@/lib/nuphy/mappings";
 import { useNuphy } from "@/lib/nuphy/use-nuphy";
 import {
   extractVariableNames,
@@ -21,9 +22,14 @@ export const VarsPanel = ({ onSwitchBack }: { onSwitchBack: () => void }) => {
     name: "varsPanel",
     enabled: true,
     keys: (key) => {
-      const handled = key === "Escape";
-      if (handled) onSwitchBack();
-      return handled;
+      const m = (keyName: keyof typeof keyboardShortcuts.varsPanel) =>
+        keyboardShortcuts.varsPanel[keyName].key;
+
+      if (key === m("Escape")) {
+        onSwitchBack();
+        return true;
+      }
+      return false;
     },
   });
 

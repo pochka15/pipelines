@@ -4,6 +4,7 @@ import {
   type NewPipeline,
   type Pipeline,
 } from "@/domain/stores/pipelines-store";
+import { keyboardShortcuts } from "@/lib/nuphy/mappings";
 import { useNuphy } from "@/lib/nuphy/use-nuphy";
 import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
 import { isNil } from "lodash";
@@ -98,11 +99,25 @@ export const PipelineForm: FC<{
     name: "pipelineForm",
     enabled: true,
     keys: (key) => {
-      const handled = key === "Escape" || key === "cmd+j" || key === "alt+j";
+      const m = (keyName: keyof typeof keyboardShortcuts.pipelineForm) =>
+        keyboardShortcuts.pipelineForm[keyName].key;
 
-      if (handled && isEditing) submit();
-      else if (handled) onClose();
-      return handled;
+      const isEscape = key === m("Escape");
+      const isSave = key === m("cmd+j") || key === m("alt+j");
+
+      if (isEscape && !isEditing) {
+        onClose();
+        return true;
+      } else if ((isEscape && isEditing) || isSave) {
+        submit();
+        return true;
+      }
+
+      const activeElement = document.activeElement;
+      return (
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement
+      );
     },
   });
 

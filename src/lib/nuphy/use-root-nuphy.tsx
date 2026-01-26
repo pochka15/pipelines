@@ -1,4 +1,5 @@
 import { type ModeName } from "@/lib/stores/nuphys-store";
+import { keyboardShortcuts } from "./mappings";
 import { useNuphy } from "./use-nuphy";
 
 export const useRootNuphy = () => {
@@ -6,19 +7,23 @@ export const useRootNuphy = () => {
     name: "root",
     enabled: true,
     keys: (key, event) => {
+      const m = (keyName: keyof typeof keyboardShortcuts.root) =>
+        keyboardShortcuts.root[keyName].key;
+
       const modes: Record<string, ModeName> = {
-        ":": "showingCommand",
-        "cmd+k": "showingNotes",
-        "alt+k": "showingNotes",
+        [m(":")]: "showingCommand",
+        [m("cmd+k")]: "showingNotes",
+        [m("alt+k")]: "showingNotes",
       };
 
       const name = modes[key];
       if (name) {
         event.preventDefault();
         enableMode(name);
+        return true;
       }
 
-      return !!name;
+      return false;
     },
   });
 };

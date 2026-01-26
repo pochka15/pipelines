@@ -1,4 +1,5 @@
 import { Textarea } from "@/components/ui/textarea";
+import { keyboardShortcuts } from "@/lib/nuphy/mappings";
 import { useNuphy } from "@/lib/nuphy/use-nuphy";
 import { cn } from "@/lib/random/utils";
 import { useNuphyMode } from "@/lib/stores/nuphys-store";
@@ -37,10 +38,14 @@ export const NotesPanel = () => {
     name: "notesPanel",
     enabled,
     keys: (key) => {
-      if (key === "Escape") {
+      const m = (keyName: keyof typeof keyboardShortcuts.notesPanel) =>
+        keyboardShortcuts.notesPanel[keyName].key;
+
+      if (key === m("Escape")) {
         saveAndClose();
+        return true;
       }
-      return true;
+      return false;
     },
   });
 

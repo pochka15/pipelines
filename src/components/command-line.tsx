@@ -1,3 +1,4 @@
+import { keyboardShortcuts } from "@/lib/nuphy/mappings";
 import { useNuphy } from "@/lib/nuphy/use-nuphy";
 import { cn } from "@/lib/random/utils";
 import { useNuphyMode } from "@/lib/stores/nuphys-store";
@@ -27,13 +28,18 @@ export const CommandLine: FC<CommandLineProps> = ({ className }) => {
     name: "command",
     enabled,
     keys: (key) => {
-      if (key === "Escape") {
+      const m = (keyName: keyof typeof keyboardShortcuts.command) =>
+        keyboardShortcuts.command[keyName].key;
+
+      if (key === m("Escape")) {
         disableModes(["showingCommand"]);
-      } else if (key === "Enter") {
+        return true;
+      } else if (key === m("Enter")) {
         disableModes(["showingCommand"]);
         submit();
+        return true;
       }
-      return true;
+      return false;
     },
   });
 

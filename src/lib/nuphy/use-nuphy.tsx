@@ -32,15 +32,18 @@ export const useNuphy = ({ name, enabled, keys }: UseNuphyOptions) => {
   const { register, unregister } = context;
 
   useEffect(() => {
-    if (enabled) register(name, keys);
-    else unregister(name);
+    if (enabled) {
+      register(name, keys);
+    } else {
+      unregister(name);
+    }
+  }, [name, keys, enabled, register, unregister]);
 
+  useEffect(() => {
     return () => {
       unregister(name);
     };
-    // we don't need to keep track of register/unregister
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name, keys, enabled]);
+  }, [unregister, name]);
 
   return { disableModes, enableMode, getMode };
 };
