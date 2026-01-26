@@ -39,10 +39,19 @@ export const Help = () => {
 
         // Merge keys with same description
         const mergedShortcuts = Array.from(grouped.entries()).map(
-          ([description, entries]) => ({
-            key: entries.map((e) => e.displayedKey || e.key).join(" / "),
-            description,
-          })
+          ([description, entries]) => {
+            const keys = entries.map((e) => e.displayedKey || e.key);
+
+            // Add cmd+j and alt+j for Escape key
+            if (entries.some((e) => e.key === "Escape")) {
+              keys.push("⌘+J", "Alt+J");
+            }
+
+            return {
+              key: keys.join(" / "),
+              description,
+            };
+          }
         );
 
         return { nuphy, shortcuts: mergedShortcuts };

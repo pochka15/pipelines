@@ -1,5 +1,5 @@
 const isEscapeShortcut = (combo: string) =>
-  combo === "Escape" || combo === "cmd+j";
+  combo === "Escape" || combo === "cmd+j" || combo === "alt+j";
 
 const isColonShortcut = (combo: string) => combo === "shift+:";
 
