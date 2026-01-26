@@ -39,7 +39,7 @@ export const CommandLine: FC<CommandLineProps> = ({ className }) => {
         submit();
         return true;
       }
-      return false;
+      return true;
     },
   });
 
@@ -50,8 +50,12 @@ export const CommandLine: FC<CommandLineProps> = ({ className }) => {
         if (notes) {
           const prefix = "- foo =";
           console.log(findValue(notes, prefix));
-          break;
         }
+        break;
+      }
+      case "github": {
+        window.open("https://github.com/pochka15/pipelines", "_blank");
+        break;
       }
     }
   };

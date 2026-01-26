@@ -4,6 +4,10 @@ import { cn } from "@/lib/random/utils";
 import { useNuphyMode, useNuphyStore } from "@/lib/stores/nuphys-store";
 import { useMemo } from "react";
 
+const commandMappings = {
+  github: "Opens GitHub",
+} as const;
+
 export const Help = () => {
   const { enabled } = useNuphyMode("showingHelp");
   const activeNuphys = useNuphyStore((it) => it.activeNuphys);
@@ -82,6 +86,20 @@ export const Help = () => {
               {nuphy}
             </h3>
             <div className="space-y-1 text-sm">
+              {nuphy === "command" && (
+                <div className={cn("mb-2 space-y-1")}>
+                  {Object.entries(commandMappings).map(
+                    ([command, description]) => (
+                      <p key={command}>
+                        <span className="bg-muted rounded px-1 font-mono text-xs">
+                          {command}
+                        </span>{" "}
+                        {description}
+                      </p>
+                    )
+                  )}
+                </div>
+              )}
               {shortcuts.map((shortcut, ind) => (
                 <p key={ind}>
                   <span className="bg-muted rounded px-1 font-mono text-xs">
