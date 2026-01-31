@@ -45,6 +45,20 @@ export const serializeVarsToBulletList = (vars: Variable[]): string => {
   return vars.map((v) => `- ${v.name}: ${v.value}`).join("\n");
 };
 
+export const updateRawVars = (raw: string, varName: string, newValue: string): string => {
+  const lines = raw.split("\n");
+  const regex = new RegExp(`^-\\s*${varName}\\s*:\\s*.*$`, "i");
+  
+  for (let i = 0; i < lines.length; i++) {
+    if (regex.test(lines[i])) {
+      lines[i] = `- ${varName}: ${newValue}`;
+      break;
+    }
+  }
+  
+  return lines.join("\n");
+};
+
 export const createFilledVariablesMapping = (
   vars?: Variable[]
 ): Map<string, Variable> => {

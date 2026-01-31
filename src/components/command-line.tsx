@@ -2,10 +2,16 @@ import { usePipelinesStore } from "@/domain/stores/pipelines-store";
 import { useUiStore } from "@/domain/stores/ui-store";
 import { keyboardShortcuts } from "@/lib/nuphy/mappings";
 import { useNuphy } from "@/lib/nuphy/use-nuphy";
+import {
+  executeEditCommand,
+  getEditSuggestion,
+  parseEditCommand,
+} from "@/lib/random/edit-command-utils";
 import { cn } from "@/lib/random/utils";
 import { useNuphyMode } from "@/lib/stores/nuphys-store";
 import { head } from "lodash";
 import { type FC, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { getNotes } from "./notes-panel/notes-panel-utils";
 
 type CommandLineProps = {
@@ -25,15 +31,21 @@ export const CommandLine: FC<CommandLineProps> = ({ className }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const pipelines = usePipelinesStore((s) => s.pipelines);
   const addPipeline = usePipelinesStore((s) => s.addPipeline);
+  const updatePipeline = usePipelinesStore((s) => s.updatePipeline);
   const focusedPipelineId = useUiStore((s) => s.focusedPipelineId);
   const focusedPipeline = pipelines.find((p) => p.id === focusedPipelineId);
   const [command, setCommand] = useState("");
   const { enabled } = useNuphyMode("showingCommand");
 
+  const suggestion = getEditSuggestion(
+    command,
+    focusedPipeline?.vars.parsed || []
+  );
+
   const { disableModes } = useNuphy({
     name: "command",
     enabled,
-    keys: (key) => {
+    keys: (key, event) => {
       const m = (keyName: keyof typeof keyboardShortcuts.command) =>
         keyboardShortcuts.command[keyName].key;
 
@@ -44,12 +56,32 @@ export const CommandLine: FC<CommandLineProps> = ({ className }) => {
         disableModes(["showingCommand"]);
         submit();
         return true;
+      } else if (key === "Tab" && suggestion) {
+        setCommand(command + suggestion);
+        event.preventDefault();
+        return true;
       }
       return true;
     },
   });
 
+  const submitEdit = () => {
+    if (!focusedPipeline) return;
+
+    const result = executeEditCommand(command, focusedPipeline);
+
+    if (result.success) {
+      updatePipeline(result.updated);
+      const parsed = parseEditCommand(command);
+      toast(`Updated ${parsed?.varName}`, { position: "bottom-left" });
+    } else {
+      toast.error(result.error, { position: "bottom-left" });
+    }
+  };
+
   const submit = () => {
+    if (command.startsWith("edit ")) submitEdit();
+
     switch (command) {
       case "tmp": {
         const notes = getNotes();
@@ -88,15 +120,23 @@ export const CommandLine: FC<CommandLineProps> = ({ className }) => {
         className
       )}
     >
-      <input
-        ref={inputRef}
-        type="text"
-        value={command}
-        onChange={(e) => setCommand(e.target.value)}
-        className="text-foreground max-w-full flex-1 border-none bg-transparent font-mono text-sm outline-none"
-        autoComplete="off"
-        spellCheck="false"
-      />
+      <div className="relative flex items-center">
+        <input
+          ref={inputRef}
+          type="text"
+          value={command}
+          onChange={(e) => setCommand(e.target.value)}
+          className="text-foreground relative z-10 max-w-full flex-1 border-none bg-transparent font-mono text-sm outline-none"
+          autoComplete="off"
+          spellCheck="false"
+        />
+        {suggestion && (
+          <span className="text-variable-set pointer-events-none absolute left-0 font-mono text-sm">
+            <span className="invisible">{command}</span>
+            {suggestion}
+          </span>
+        )}
+      </div>
     </div>
   );
 };
