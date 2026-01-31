@@ -29,7 +29,7 @@ export const VarsPanel = ({ onSwitchBack }: { onSwitchBack: () => void }) => {
         onSwitchBack();
         return true;
       }
-      return false;
+      return true;
     },
   });
 

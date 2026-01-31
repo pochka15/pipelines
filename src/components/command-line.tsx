@@ -1,3 +1,5 @@
+import { usePipelinesStore } from "@/domain/stores/pipelines-store";
+import { useUiStore } from "@/domain/stores/ui-store";
 import { keyboardShortcuts } from "@/lib/nuphy/mappings";
 import { useNuphy } from "@/lib/nuphy/use-nuphy";
 import { cn } from "@/lib/random/utils";
@@ -21,6 +23,10 @@ const findValue = (s: string, prefix: string) => {
 
 export const CommandLine: FC<CommandLineProps> = ({ className }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const pipelines = usePipelinesStore((s) => s.pipelines);
+  const addPipeline = usePipelinesStore((s) => s.addPipeline);
+  const focusedPipelineId = useUiStore((s) => s.focusedPipelineId);
+  const focusedPipeline = pipelines.find((p) => p.id === focusedPipelineId);
   const [command, setCommand] = useState("");
   const { enabled } = useNuphyMode("showingCommand");
 
@@ -50,6 +56,15 @@ export const CommandLine: FC<CommandLineProps> = ({ className }) => {
         if (notes) {
           const prefix = "- foo =";
           console.log(findValue(notes, prefix));
+        }
+        break;
+      }
+      case "clone": {
+        if (focusedPipeline) {
+          addPipeline({
+            ...focusedPipeline,
+            title: `${focusedPipeline.title} (clone)`,
+          });
         }
         break;
       }
