@@ -122,9 +122,7 @@ export const CommandsList: FC<{
 
   const filledVariables = useMemo(
     () => createFilledVariablesMapping(focusedPipeline?.vars?.parsed),
-    // we just want to keep track of the id change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [focusedPipelineId]
+    [focusedPipeline]
   );
 
   const handleDragEnd = (result: DropResult) => {

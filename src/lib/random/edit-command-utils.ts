@@ -6,7 +6,7 @@ const EDIT_REGEX = /^edit\s+(\S+)\s+(.+)$/;
 export const parseEditCommand = (command: string) => {
   const match = command.match(EDIT_REGEX);
   if (!match) return undefined;
-  return { varName: match[1], newValue: match[2] };
+  return { varName: match[1], newValue: match[2].trim() };
 };
 
 export const getEditSuggestion = (
