@@ -1,13 +1,12 @@
 import { Textarea } from "@/components/ui/textarea";
-import { keyboardShortcuts } from "@/lib/nuphy/mappings";
-import { useNuphy } from "@/lib/nuphy/use-nuphy";
 import { cn } from "@/lib/random/utils";
-import { useNuphyMode } from "@/lib/stores/nuphys-store";
+import { useShortcutsMode } from "@/shared-lib/shortcuts/shortcuts-store";
+import { useShortcuts } from "@/shared-lib/shortcuts/use-shortcuts";
 import { useEffect, useRef, useState } from "react";
 import { getNotes, saveNotes } from "./notes-panel-utils";
 
 export const NotesPanel = () => {
-  const { enabled } = useNuphyMode("showingNotes");
+  const { enabled } = useShortcutsMode("showingNotes");
   const [notes, setNotes] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -34,16 +33,12 @@ export const NotesPanel = () => {
     disableModes(["showingNotes"]);
   };
 
-  const { disableModes } = useNuphy({
+  const { disableModes } = useShortcuts({
     name: "notesPanel",
     enabled,
     keys: (key) => {
-      const m = (keyName: keyof typeof keyboardShortcuts.notesPanel) =>
-        keyboardShortcuts.notesPanel[keyName].key;
-
-      if (key === m("Escape")) {
+      if (key === "Escape") {
         saveAndClose();
-        return true;
       }
       return true;
     },

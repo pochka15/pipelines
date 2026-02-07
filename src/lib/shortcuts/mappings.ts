@@ -1,20 +1,4 @@
-export type KeyHandler = (key: string, event: KeyboardEvent) => boolean;
-
-let prio = 1;
-const next = () => prio++;
-
-export const nuphyPriorities = {
-  notesPanel: next(), // handled first
-  command: next(),
-  pipelineForm: next(),
-  varsPanel: next(),
-  commandItem: next(),
-  pipelinePanel: next(),
-  help: next(),
-  root: next(),
-} as const;
-
-export type KnownNuphy = keyof typeof nuphyPriorities;
+import type { KnownShortcutsListener } from "@/shared-lib/shortcuts/shortcuts-glue";
 
 export type ShortcutEntry = {
   key: string;
@@ -157,4 +141,4 @@ export const keyboardShortcuts = {
   pipelinePanel,
   help,
   root,
-} satisfies Record<KnownNuphy, Record<string, ShortcutEntry>>;
+} satisfies Record<KnownShortcutsListener, Record<string, ShortcutEntry>>;

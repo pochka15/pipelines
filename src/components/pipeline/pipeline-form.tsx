@@ -4,8 +4,8 @@ import {
   type NewPipeline,
   type Pipeline,
 } from "@/domain/stores/pipelines-store";
-import { keyboardShortcuts } from "@/lib/nuphy/mappings";
-import { useNuphy } from "@/lib/nuphy/use-nuphy";
+import { keyboardShortcuts } from "@/lib/shortcuts/mappings";
+import { useShortcuts } from "@/shared-lib/shortcuts/use-shortcuts";
 import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
 import { isNil } from "lodash";
 import { Plus } from "lucide-react";
@@ -95,7 +95,7 @@ export const PipelineForm: FC<{
     });
   };
 
-  useNuphy({
+  useShortcuts({
     name: "pipelineForm",
     enabled: true,
     keys: (key) => {

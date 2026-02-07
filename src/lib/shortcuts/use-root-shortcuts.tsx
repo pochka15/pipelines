@@ -1,9 +1,9 @@
-import { type ModeName } from "@/lib/stores/nuphys-store";
+import { useShortcuts } from "@/shared-lib/shortcuts/use-shortcuts";
 import { keyboardShortcuts } from "./mappings";
-import { useNuphy } from "./use-nuphy";
+import type { ModeName } from "./shortcuts-modes";
 
-export const useRootNuphy = () => {
-  const { enableMode } = useNuphy({
+export const useRootShortcuts = () => {
+  const { enableMode } = useShortcuts({
     name: "root",
     enabled: true,
     keys: (key, event) => {

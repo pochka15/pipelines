@@ -3,12 +3,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePipelinesStore } from "@/domain/stores/pipelines-store";
 import { useUiStore } from "@/domain/stores/ui-store";
 import { useDebounce } from "@/lib/hooks/use-debounce";
-import { keyboardShortcuts } from "@/lib/nuphy/mappings";
-import { useNuphy } from "@/lib/nuphy/use-nuphy";
+import { keyboardShortcuts } from "@/lib/shortcuts/mappings";
 import {
   extractVariableNames,
   parseVarsFromBulletList,
 } from "@/lib/template-vars";
+import { useShortcuts } from "@/shared-lib/shortcuts/use-shortcuts";
 import { useEffect, useRef, useState } from "react";
 
 export const VarsPanel = ({ onSwitchBack }: { onSwitchBack: () => void }) => {
@@ -18,7 +18,7 @@ export const VarsPanel = ({ onSwitchBack }: { onSwitchBack: () => void }) => {
   const focusedPipeline = pipelines.find((p) => p.id === focusedPipelineId);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useNuphy({
+  useShortcuts({
     name: "varsPanel",
     enabled: true,
     keys: (key) => {

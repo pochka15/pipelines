@@ -1,18 +1,18 @@
 import { usePipelinesStore } from "@/domain/stores/pipelines-store";
 import { useUiStore } from "@/domain/stores/ui-store";
-import { keyboardShortcuts } from "@/lib/nuphy/mappings";
-import { useNuphy } from "@/lib/nuphy/use-nuphy";
 import {
   executeEditCommand,
   getEditSuggestion,
   parseEditCommand,
 } from "@/lib/random/edit-command-utils";
 import { cn } from "@/lib/random/utils";
-import { useNuphyMode } from "@/lib/stores/nuphys-store";
+import { keyboardShortcuts } from "@/lib/shortcuts/mappings";
+import { getNotes } from "@/shared-lib/notes-panel/notes-panel-utils";
+import { useShortcutsMode } from "@/shared-lib/shortcuts/shortcuts-store";
+import { useShortcuts } from "@/shared-lib/shortcuts/use-shortcuts";
 import { head } from "lodash";
 import { type FC, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { getNotes } from "./notes-panel/notes-panel-utils";
 
 type CommandLineProps = {
   className?: string;
@@ -35,14 +35,14 @@ export const CommandLine: FC<CommandLineProps> = ({ className }) => {
   const focusedPipelineId = useUiStore((s) => s.focusedPipelineId);
   const focusedPipeline = pipelines.find((p) => p.id === focusedPipelineId);
   const [command, setCommand] = useState("");
-  const { enabled } = useNuphyMode("showingCommand");
+  const { enabled } = useShortcutsMode("showingCommand");
 
   const suggestion = getEditSuggestion(
     command,
     focusedPipeline?.vars.parsed || []
   );
 
-  const { disableModes } = useNuphy({
+  const { disableModes } = useShortcuts({
     name: "command",
     enabled,
     keys: (key, event) => {

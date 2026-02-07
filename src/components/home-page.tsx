@@ -1,19 +1,19 @@
 import { CommandLine } from "@/components/command-line";
 import { Help } from "@/components/help";
 import { ModeToggle } from "@/components/mode-toggle";
-import { NotesPanel } from "@/components/notes-panel";
 import { PipelinePanel } from "@/components/pipeline/pipeline-panel";
 import { VarsPanel } from "@/components/pipeline/vars-panel";
 import { PipelinesSidebar } from "@/components/pipelines-sidebar";
 import { Toolbar } from "@/components/toolbar";
 import { useUiStore } from "@/domain/stores/ui-store";
-import { useRootNuphy } from "@/lib/nuphy/use-root-nuphy";
+import { useRootShortcuts } from "@/lib/shortcuts/use-root-shortcuts";
+import { NotesPanel } from "@/shared-lib/notes-panel";
 import { useEffect, useState } from "react";
 
 export const HomePage = () => {
   const [showVarsPanel, setShowVarsPanel] = useState(false);
   const focusedPipelineId = useUiStore((s) => s.focusedPipelineId);
-  useRootNuphy();
+  useRootShortcuts();
 
   useEffect(() => setShowVarsPanel(false), [focusedPipelineId]);
 

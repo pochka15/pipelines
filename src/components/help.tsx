@@ -1,7 +1,13 @@
-import { keyboardShortcuts, type ShortcutEntry } from "@/lib/nuphy/mappings";
-import { useNuphy } from "@/lib/nuphy/use-nuphy";
 import { cn } from "@/lib/random/utils";
-import { useNuphyMode, useNuphyStore } from "@/lib/stores/nuphys-store";
+import {
+  keyboardShortcuts,
+  type ShortcutEntry,
+} from "@/lib/shortcuts/mappings";
+import {
+  useShortcutsMode,
+  useShortcutsStore,
+} from "@/shared-lib/shortcuts/shortcuts-store";
+import { useShortcuts } from "@/shared-lib/shortcuts/use-shortcuts";
 import { useMemo } from "react";
 
 const commandMappings = {
@@ -9,10 +15,10 @@ const commandMappings = {
 } as const;
 
 export const Help = () => {
-  const { enabled } = useNuphyMode("showingHelp");
-  const activeNuphys = useNuphyStore((it) => it.activeNuphys);
+  const { enabled } = useShortcutsMode("showingHelp");
+  const activeListeners = useShortcutsStore((it) => it.activeListeners);
 
-  const { enableMode, disableModes } = useNuphy({
+  const { enableMode, disableModes } = useShortcuts({
     name: "help",
     enabled: true,
     keys: (key) => {
@@ -29,9 +35,9 @@ export const Help = () => {
   });
 
   const activeShortcuts = useMemo(() => {
-    return activeNuphys
-      .map((nuphy) => {
-        const shortcuts = keyboardShortcuts[nuphy];
+    return activeListeners
+      .map((listener) => {
+        const shortcuts = keyboardShortcuts[listener];
         const shortcutsList = Object.values(shortcuts);
 
         // Group by description
@@ -58,10 +64,10 @@ export const Help = () => {
           }
         );
 
-        return { nuphy, shortcuts: mergedShortcuts };
+        return { listener, shortcuts: mergedShortcuts };
       })
       .filter((item) => item.shortcuts.length > 0);
-  }, [activeNuphys]);
+  }, [activeListeners]);
 
   return (
     <div
@@ -80,13 +86,13 @@ export const Help = () => {
         </button>
       </div>
       <div className="space-y-3">
-        {activeShortcuts.map(({ nuphy, shortcuts }) => (
-          <div key={nuphy}>
+        {activeShortcuts.map(({ listener, shortcuts }) => (
+          <div key={listener}>
             <h3 className="text-muted-foreground mb-1.5 text-lg font-semibold capitalize">
-              {nuphy}
+              {listener}
             </h3>
             <div className="space-y-1 text-sm">
-              {nuphy === "command" && (
+              {listener === "command" && (
                 <div className={cn("mb-2 space-y-1")}>
                   {Object.entries(commandMappings).map(
                     ([command, description]) => (

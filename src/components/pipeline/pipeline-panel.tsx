@@ -4,10 +4,10 @@ import {
 } from "@/domain/stores/pipelines-store";
 import { useUiStore } from "@/domain/stores/ui-store";
 import { copyToClipboard } from "@/lib/clipboard";
-import { keyboardShortcuts } from "@/lib/nuphy/mappings";
-import { useNuphy } from "@/lib/nuphy/use-nuphy";
+import { keyboardShortcuts } from "@/lib/shortcuts/mappings";
 import { withVars } from "@/lib/template-vars";
 import { Fancy, type FancyWindow, type UiWindow } from "@/lib/window";
+import { useShortcuts } from "@/shared-lib/shortcuts/use-shortcuts";
 import type { DropResult } from "@hello-pangea/dnd";
 import { useState } from "react";
 import { CommandsList } from "./commands-list";
@@ -84,7 +84,7 @@ export const PipelinePanel = ({
     setCopied(new Set<number>());
   };
 
-  useNuphy({
+  useShortcuts({
     name: "pipelinePanel",
     enabled: !isEditing && !showForm,
     keys: (key, evt) => {

@@ -1,4 +1,4 @@
-const NOTES_KEY = "nuphy-notes";
+const NOTES_KEY = "shortcuts-notes";
 
 export const getNotes = (): string | undefined => {
   const savedNotes = localStorage.getItem(NOTES_KEY);

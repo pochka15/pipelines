@@ -11,14 +11,14 @@ import {
   type Variable,
 } from "@/domain/stores/pipelines-store";
 import { useUiStore } from "@/domain/stores/ui-store";
-import { keyboardShortcuts } from "@/lib/nuphy/mappings";
-import { useNuphy } from "@/lib/nuphy/use-nuphy";
 import { cn } from "@/lib/random/utils";
+import { keyboardShortcuts } from "@/lib/shortcuts/mappings";
 import {
   createFilledVariablesMapping,
   splitByVariables,
 } from "@/lib/template-vars";
 import type { FancyWindow } from "@/lib/window";
+import { useShortcuts } from "@/shared-lib/shortcuts/use-shortcuts";
 import {
   DragDropContext,
   Draggable,
@@ -152,7 +152,7 @@ export const CommandsList: FC<{
     exitSubstituteMode();
   };
 
-  useNuphy({
+  useShortcuts({
     name: "commandItem",
     enabled: !isHidden,
     keys: (key, evt) => {
