@@ -1,8 +1,8 @@
 "use client";
 
-import { getKeysCombo } from "@/lib/random/keyboard-utils";
 import { shortcutsPriorities } from "@/lib/shortcuts/shortcuts-priorities";
 import { useShortcutsStore } from "@/shared-lib/shortcuts/shortcuts-store";
+import { getKeysCombo } from "@/shared-lib/shortcuts/shortcuts-utils";
 import { useEffect, useRef, type FC, type PropsWithChildren } from "react";
 import type { KeyHandler, KnownShortcutsListener } from "./shortcuts-glue";
 import {

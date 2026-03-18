@@ -1,3 +1,5 @@
+"use client";
+
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/random/utils";
 import { useShortcutsMode } from "@/shared-lib/shortcuts/shortcuts-store";

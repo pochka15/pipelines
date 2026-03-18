@@ -1,4 +1,4 @@
-import type { UiWindow } from "@/lib/window";
+import type { UiWindow } from "@/shared-lib/shortcuts/window";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 

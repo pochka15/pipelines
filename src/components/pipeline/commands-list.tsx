@@ -17,7 +17,7 @@ import {
   createFilledVariablesMapping,
   splitByVariables,
 } from "@/lib/template-vars";
-import type { FancyWindow } from "@/lib/window";
+import type { FancyWindow } from "@/shared-lib/shortcuts/window";
 import { useShortcuts } from "@/shared-lib/shortcuts/use-shortcuts";
 import {
   DragDropContext,

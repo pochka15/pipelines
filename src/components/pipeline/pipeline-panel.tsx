@@ -6,7 +6,7 @@ import { useUiStore } from "@/domain/stores/ui-store";
 import { copyToClipboard } from "@/lib/clipboard";
 import { keyboardShortcuts } from "@/lib/shortcuts/mappings";
 import { withVars } from "@/lib/template-vars";
-import { Fancy, type FancyWindow, type UiWindow } from "@/lib/window";
+import { Fancy, type FancyWindow, type UiWindow } from "@/shared-lib/shortcuts/window";
 import { useShortcuts } from "@/shared-lib/shortcuts/use-shortcuts";
 import type { DropResult } from "@hello-pangea/dnd";
 import { useState } from "react";
