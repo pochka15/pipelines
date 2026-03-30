@@ -6,7 +6,11 @@ import { useUiStore } from "@/domain/stores/ui-store";
 import { copyToClipboard } from "@/lib/clipboard";
 import { keyboardShortcuts } from "@/lib/shortcuts/mappings";
 import { withVars } from "@/lib/template-vars";
-import { Fancy, type FancyWindow, type UiWindow } from "@/shared-lib/shortcuts/window";
+import {
+  Fancy,
+  type FancyWindow,
+  type UiWindow,
+} from "@/shared-lib/shortcuts/window";
 import { useShortcuts } from "@/shared-lib/shortcuts/use-shortcuts";
 import type { DropResult } from "@hello-pangea/dnd";
 import { useState } from "react";
@@ -20,12 +24,12 @@ const move = ({
   window,
   up,
   shift,
-  commandsSize,
+  elementsSize,
 }: {
   window: UiWindow | null;
   up: boolean;
   shift: boolean;
-  commandsSize: number;
+  elementsSize: number;
 }): UiWindow => {
   const size = window?.size || 0;
   const down = !up;
@@ -33,13 +37,13 @@ const move = ({
   let cursor = window?.cursor || 0;
   if (up) cursor -= 1;
   else if (down && !shift) cursor += size;
-  cursor = withinBounds(cursor, 0, commandsSize - 1);
+  cursor = withinBounds(cursor, 0, elementsSize - 1);
 
   const newSize = shift ? size + 1 : 1;
 
   return {
     cursor,
-    size: Math.min(newSize, commandsSize - cursor),
+    size: Math.min(newSize, elementsSize - cursor),
   };
 };
 
@@ -91,6 +95,7 @@ export const PipelinePanel = ({
       type PipelinePanelShortcuts = typeof keyboardShortcuts.pipelinePanel;
       const m = (keyName: keyof PipelinePanelShortcuts) =>
         keyboardShortcuts.pipelinePanel[keyName].key;
+      const elementsSize = commands.length;
 
       const mapping = {
         [m("n")]: () => {
@@ -106,78 +111,22 @@ export const PipelinePanel = ({
           onSwitchToVars();
         },
         [m("j")]: () =>
-          setWindow(
-            move({
-              window,
-              up: false,
-              shift: false,
-              commandsSize: commands.length,
-            })
-          ),
+          setWindow(move({ window, up: false, shift: false, elementsSize })),
         [m("k")]: () =>
-          setWindow(
-            move({
-              window,
-              up: true,
-              shift: false,
-              commandsSize: commands.length,
-            })
-          ),
+          setWindow(move({ window, up: true, shift: false, elementsSize })),
         [m("ArrowDown")]: () =>
-          setWindow(
-            move({
-              window,
-              up: false,
-              shift: false,
-              commandsSize: commands.length,
-            })
-          ),
+          setWindow(move({ window, up: false, shift: false, elementsSize })),
         [m("ArrowUp")]: () =>
-          setWindow(
-            move({
-              window,
-              up: true,
-              shift: false,
-              commandsSize: commands.length,
-            })
-          ),
+          setWindow(move({ window, up: true, shift: false, elementsSize })),
         [m("y")]: () => yank(window),
         [m("shift+J")]: () =>
-          setWindow(
-            move({
-              window,
-              up: false,
-              shift: true,
-              commandsSize: commands.length,
-            })
-          ),
+          setWindow(move({ window, up: false, shift: true, elementsSize })),
         [m("shift+K")]: () =>
-          setWindow(
-            move({
-              window,
-              up: true,
-              shift: true,
-              commandsSize: commands.length,
-            })
-          ),
+          setWindow(move({ window, up: true, shift: true, elementsSize })),
         [m("shift+ArrowDown")]: () =>
-          setWindow(
-            move({
-              window,
-              up: false,
-              shift: true,
-              commandsSize: commands.length,
-            })
-          ),
+          setWindow(move({ window, up: false, shift: true, elementsSize })),
         [m("shift+ArrowUp")]: () =>
-          setWindow(
-            move({
-              window,
-              up: true,
-              shift: true,
-              commandsSize: commands.length,
-            })
-          ),
+          setWindow(move({ window, up: true, shift: true, elementsSize })),
       };
 
       const esc = key === m("Escape");
